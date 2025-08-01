@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天路智治 - 全屏地图</title>
+
+    <!-- 高德地图JS API 安全密钥配置 -->
+    <script>
+        // 请替换为您的安全密钥 (与您的Web端Key关联)
+        window._AMapSecurityConfig = {
+            securityJsCode: '090e8e5b1016fd5df24d5dabb97c0862',
+        }
+    </script>
+    <!-- 高德地图JS API - 请替换为您的Web端Key -->
+    <script src="https://webapi.amap.com/maps?v=2.0&key=0e08a7fe58008811d356e225d3d98391"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css"> <!-- 复用主页样式 -->
+    <style>
+        html, body {
+            overflow: hidden;
+            background: var(--bg-primary); /* 使用CSS变量 */
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .back-btn {
+            position: fixed; top: 20px; left: 20px; z-index: 1000;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 50px;
+            background: var(--accent);
+            color: var(--primary-dark);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow-md); /* 添加阴影 */
+            transition: var(--transition); /* 添加过渡效果 */
+        }
+        .back-btn:hover {
+            background: var(--accent-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 25, 47, 0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 2000;
+            transition: opacity 0.3s ease;
+            color: var(--text-primary);
+        }
+        /* 加载动画相关样式已在 styles.css 中定义，此处无需重复 */
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载飞行路径</div>
+    </div>
+
+    <button class="back-btn" onclick="window.close()">
+        <i class="fas fa-arrow-left"></i> 返回系统
+    </button>
+
+    <div id="map"></div>
+
+    <script>
+        let map;
+        let activePolyline; // 用于存储当前绘制的路线
+
+        const initMap = () => {
+            if (!window.AMap) {
+                console.error('高德地图SDK未加载');
+                return;
+            }
+            map = new AMap.Map('map', {
+                zoom: 12,
+                center: [121.4737, 31.2304], // 上海中心
+                mapStyle: 'amap://styles/dark', // 暗色系地图
+                features: ['bg', 'road', 'building']
+            });
+
+            new AMap.Buildings({ zooms: [14, 20], heightFactor: 2 }).setMap(map);
+
+            // 在地图加载完成后，可以尝试从 localStorage 获取路径数据来绘制
+            const pathData = localStorage.getItem('currentRoutePath');
+            const routeType = localStorage.getItem('currentRouteType'); // "flight" or "ground"
+
+            if (pathData) {
+                const path = JSON.parse(pathData);
+                let strokeColor = '#00A2FF'; // 默认飞行路径
+                if (routeType === 'ground') {
+                    strokeColor = '#fbbf24'; // 地面路径颜色
+                }
+
+                activePolyline = new AMap.Polyline({
+                    path: path,
+                    strokeColor: strokeColor,
+                    strokeWeight: 6,
+                    strokeOpacity: 0.9,
+                    lineJoin: 'round',
+                    lineCap: 'round',
+                    showDir: true,
+                });
+                activePolyline.setMap(map);
+
+                // 添加起点和终点标记
+                new AMap.Marker({ position: path[0], map: map, title: '出发地', icon: 'https://webapi.amap.com/theme/v1.3/markers/n/start.png' });
+                new AMap.Marker({ position: path[path.length - 1], map: map, title: '目的地', icon: 'https://webapi.amap.com/theme/v1.3/markers/n/end.png' });
+
+                map.setFitView();
+            } else {
+                console.log('未找到缓存的路径数据，显示默认地图中心。');
+            }
+
+
+            // 模拟加载结束
+            setTimeout(() => {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => loadingOverlay.style.display = 'none', 300);
+            }, 500); // 减少模拟加载时间
+        };
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>

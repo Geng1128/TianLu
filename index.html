@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天路智治 - 空地一体化智能出行决策平台</title>
+
+    <!-- 高德地图JS API 安全密钥配置 -->
+    <script>
+        // 请替换为您的安全密钥 (与您的Web端Key关联)
+        window._AMapSecurityConfig = {
+            securityJsCode: '090e8e5b1016fd5df24d5dabb97c0862',
+        }
+    </script>
+    <!-- 高德地图JS API - 请替换为您的Web端Key -->
+    <script src="https://webapi.amap.com/maps?v=2.0&key=0e08a7fe58008811d356e225d3d98391" defer></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 浮动按钮 -->
+    <div class="floating-buttons">
+        <a href="mailto:gengshirong1128@qq.com" class="float-btn help-btn" title="帮助与反馈">
+            <i class="fas fa-question-circle"></i>
+        </a>
+        <button class="float-btn" id="backToTopBtn" title="回到顶部">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </div>
+
+    <!-- 天气按钮 -->
+    <button class="weather-btn" id="weatherBtn">
+        <i class="fas fa-cloud-sun"></i>
+    </button>
+
+    <!-- 天气组件 -->
+    <div class="weather-widget" id="weatherWidget">
+        <div class="weather-header">
+            <div class="weather-location" id="weatherLocation"><i class="fas fa-map-marker-alt"></i> 上海市</div>
+            <div class="weather-update" id="weatherUpdate">刚刚更新 <button class="refresh-btn" onclick="refreshWeather()">🔄</button></div>
+        </div>
+        <div class="weather-current">
+            <div class="weather-temp" id="weatherTemp">--°C</div>
+            <div class="weather-desc" id="weatherDesc">加载中...</div>
+            <div class="weather-icon" id="weatherIcon"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+        <div class="weather-details">
+            <div class="weather-item"><div class="weather-item-label">风速</div><div class="weather-item-value" id="windSpeed">-- m/s</div></div>
+            <div class="weather-item"><div class="weather-item-label">湿度</div><div class="weather-item-value" id="humidity">--%</div></div>
+            <div class="weather-item"><div class="weather-item-label">能见度</div><div class="weather-item-value" id="visibility">-- km</div></div>
+            <div class="weather-item"><div class="weather-item-label">气压</div><div class="weather-item-value" id="pressure">-- hPa</div></div>
+        </div>
+        <div class="weather-forecast">
+            <div class="forecast-tabs">
+                <button class="forecast-tab active" onclick="switchForecast('hourly')">24小时</button>
+                <button class="forecast-tab" onclick="switchForecast('daily')">7天</button>
+            </div>
+            <div class="forecast-items hourly-forecast" id="hourlyForecastItems"></div>
+            <div class="forecast-items daily-forecast" id="dailyForecastItems" style="display: none;"></div>
+        </div>
+    </div>
+
+    <header class="header" id="header">
+        <div class="header-content">
+            <a href="#hero" class="logo"><i class="fas fa-wind"></i> 天路智治</a>
+            <nav class="nav">
+                <a href="#hero">首页</a>
+                <a href="#explore">空中服务</a> <!-- 新增导航链接 -->
+                <a href="#travel">飞行规划</a>
+                <a href="#about">关于我们</a>
+                <a href="map.html" target="_blank">全屏地图</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" id="hero">
+            <div class="hero-content">
+                <h1 class="hero-headline">天路智治</h1>
+                <p class="hero-subheadline">空地一体化智能出行决策平台</p>
+                <p class="hero-description">我们不仅规划天空的航线，更连接地面的脉搏。当飞行不再是最佳选择，我们无缝切换至地面交通方案，确保您的每一次出行都安全、高效、智能。</p>
+                <div class="cta-buttons">
+                    <a href="#travel" class="btn-primary pulse"><i class="fas fa-paper-plane"></i> 开始规划</a>
+                </div>
+            </div>
+            <div class="hero-image-container">
+                <!-- 更新英雄图片链接 -->
+                <img src="UAV.png" alt="未来派无人机" class="hero-drone-image">
+            </div>
+        </section>
+
+        <!-- 新增的“探索更多空中服务”区块，位于飞行规划之前 -->
+        <section class="section" id="explore">
+            <div class="section-content">
+                <h3 class="section-title">探索更多空中服务 <i class="fas fa-binoculars"></i></h3>
+                <p class="section-subtitle">个性化空中出行方案，满足您的多样化需求。</p>
+                <div class="service-cards">
+                    <div class="service-card">
+                        <i class="fas fa-camera fa-2x"></i>
+                        <h4>城市观光</h4>
+                        <p>乘坐飞行器俯瞰上海璀璨夜景</p>
+                        <button class="btn-secondary" onclick="showSpecialRoute('sightseeing')">查看详情</button>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-briefcase fa-2x"></i>
+                        <h4>商务专线</h4>
+                        <p>点对点快速通勤，避开地面拥堵</p>
+                        <button class="btn-secondary" onclick="showSpecialRoute('business')">查看详情</button>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-box-open fa-2x"></i>
+                        <h4>即时货运</h4>
+                        <p>无人机极速配送，高效安全</p>
+                        <button class="btn-secondary" onclick="showSpecialRoute('cargo')">查看详情</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="travel">
+            <div class="section-content">
+                <h2 class="section-title">智能出行规划</h2>
+                <p class="section-subtitle">输入您的行程信息，AI将结合实时气象、空域数据为您生成最优出行方案。</p>
+
+                <div class="city-restriction-notice">
+                    <i class="fas fa-info-circle"></i>
+                    当前服务范围：上海市内
+                </div>
+
+                <div class="planning-container">
+                    <div class="planning-card">
+                        <h3 class="planning-title"><i class="fas fa-map-marked-alt"></i> 出行信息配置</h3>
+                        <div class="form-group">
+                            <label class="form-label" for="departure">出发地</label>
+                            <div style="position: relative;">
+                                <input type="text" id="departure" class="form-input" placeholder="请输入上海市内地址，如：陆家嘴">
+                                <div class="autocomplete-suggestions" id="departureSuggestions"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="destination">目的地</label>
+                            <div style="position: relative;">
+                                <input type="text" id="destination" class="form-input" placeholder="请输入上海市内地址，如：虹桥机场">
+                                <div class="autocomplete-suggestions" id="destinationSuggestions"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="planning-card">
+                        <h3 class="planning-title"><i class="fas fa-sliders-h"></i> 方案偏好设置</h3>
+                        <div class="form-group">
+                            <label class="form-label" for="drone-type">出行工具偏好</label>
+                            <select id="drone-type" class="form-select">
+                                <option value="cargo">高效货运 (无人机)</option>
+                                <option value="passenger" selected>舒适载人 (飞行器)</option>
+                                <option value="ground">地面交通优先</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button onclick="submitForm()" class="btn-primary" style="width: 100%; margin-top: 16px;">
+                                <i class="fas fa-route"></i> 生成出行方案
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="map-container">
+                    <div id="map"></div>
+                    <div class="loading-state" id="loadingState">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">正在分析航路与天气，请稍候...</p>
+                    </div>
+                </div>
+
+                <div class="results-container" id="resultsContainer">
+                    <!-- 飞行方案结果 -->
+                    <div class="results-header">
+                        <h3 class="results-title">推荐飞行方案 <i class="fas fa-plane-departure"></i></h3>
+                        <div class="results-meta">
+                            <div><i class="fas fa-clock" style="margin-right: 5px;"></i> 预计时长: <span id="flightTime">--</span>分钟</div>
+                            <div><i class="fas fa-ruler-combined" style="margin-right: 5px;"></i> 飞行距离: <span id="flightDistance">--</span>km</div>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="result-content"><h4>安全评分</h4><p>综合气象、空域和设备状态</p><span class="safety-rating" id="safetyRating">--</span></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-icon"><i class="fas fa-wind"></i></div>
+                        <div class="result-content"><h4>气象影响</h4><p id="weatherInfluence">当前飞行路径气象条件良好。</p></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="result-content"><h4>推荐高度</h4><p id="optimalAltitude">巡航高度：<span class="value">300</span>米</p></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-icon"><i class="fas fa-traffic-light"></i></div>
+                        <div class="result-content"><h4>空域状况</h4><p id="airspaceStatus">航线空域正常，无管制。</p></div>
+                    </div>
+                </div>
+
+                <div id="groundServiceContainer">
+                    <!-- 地面出行方案结果 -->
+                    <h3 class="ground-service-title"><i class="fas fa-exclamation-triangle"></i> 飞行条件不佳，推荐地面方案</h3>
+                    <p class="ground-service-desc" id="flightDeniedReason">当前天气或空域状况不建议飞行。</p>
+                    <div class="taxi-info-cards">
+                        <div class="taxi-info-card"><div class="taxi-info-label">预计用时</div><div class="taxi-info-value" id="taxiTime">-- 分钟</div></div>
+                        <div class="taxi-info-card"><div class="taxi-info-label">预估费用</div><div class="taxi-info-value" id="taxiPrice">-- 元</div></div>
+                    </div>
+                    <a href="https://www.amap.com/callCar/index" target="_blank" class="btn-primary btn-taxi"><i class="fas fa-taxi"></i> 使用高德地图打车</a>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="section section-white" id="about">
+            <div class="section-content">
+                <h2 class="section-title">关于天路智治</h2>
+                <p class="section-subtitle" style="max-width: 800px;">“天路智治”致力于构建下一代城市立体交通网络。我们融合高精度气象数据、AI决策引擎和地理信息系统（GIS），为无人机和eVTOL（电动垂直起降飞行器）提供最可靠的运营支持。我们的使命是让城市的天空更安全、更有序、更智能。</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 天路智治. All Rights Reserved.</p>
+        <p>技术支持与反馈: <a href="mailto:gengshirong1128@qq.com">gengshirong1128@qq.com</a></p>
+    </footer>
+
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+    <div class="warning-message" id="warningMessage"></div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
